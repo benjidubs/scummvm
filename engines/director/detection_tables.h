@@ -2468,6 +2468,7 @@ static const DirectorGameDescription gameDescriptions[] = {
 
 	WINGAME1("cutemachine", "Windows 3.1", "CUTE.EXE", "2e62abdad839e42068afdcd0644d7dcf", 920035, 500),
 	WINGAME1("cutemachine", "Windows 95", "clickhere.exe", "3460ad87d2ba57104e2810a77b53c220", 1396405, 500),
+	MACGAME1("cutemachine", "", "ClickHere", "62e979424add2428daa835610fb83864", 719005, 500),
 
 #undef SUPPORT_STATUS
 #define SUPPORT_STATUS ADGF_UNSTABLE
