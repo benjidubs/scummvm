@@ -88,6 +88,21 @@ static const AccessGameDescription gameDescriptions[] = {
 	},
 
 	{
+		// Countdown v1.2
+		{
+			"countdown",
+			"v1.2",
+			AD_ENTRY1s("cell.cnt", "683334ede9b4ac0e45275db34936d8b7", 32919),
+			Common::EN_ANY,
+			Common::kPlatformDOS,
+			ADGF_UNSTABLE,
+			GUIO1(GUIO_NONE)
+		},
+		kGameCountdown,
+		0
+	},
+
+	{
 		// Martian Memorandum
 		{
 			"martian",
