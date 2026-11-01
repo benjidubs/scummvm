@@ -151,7 +151,7 @@ public:
 	bool scrollRight(int forcedAmount = -1);
 	void checkScroll();
 
-	void checkMove();
+	virtual void checkMove();
 
 	virtual void updateTimers() {};
 

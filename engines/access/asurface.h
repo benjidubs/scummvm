@@ -141,7 +141,13 @@ class SpriteFrame : public ASurface {
 public:
 	SpriteFrame(const AccessEngine *vm, Common::SeekableReadStream *stream, int frameSize);
 	~SpriteFrame() override;
+
+	const Common::Point &getRowSpan(int row) const { return _rowSpans[row]; }
+
+private:
+	Common::Array<Common::Point> _rowSpans;
 };
+
 
 class SpriteResource {
 public:

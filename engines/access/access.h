@@ -345,7 +345,7 @@ public:
 	virtual void establish(int esatabIndex, int sub) = 0;
 
 	void plotList();
-	void plotList1();
+	virtual void plotList1();
 	void clearPlotImagesIn(int16 x, int16 y, int16 w, int16 h);
 	void clearPlotVidsIn(int16 x, int16 y, int16 w, int16 h);
 

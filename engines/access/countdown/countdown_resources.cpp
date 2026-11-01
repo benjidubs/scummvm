@@ -28,6 +28,11 @@ namespace Access {
 
 namespace Countdown {
 
+const int SIDEOFFR[] = { 3, 0, 3, 10, 8, 0, 1, 8, 9, 0 };
+const int SIDEOFFL[] = { 9, 5, 0, 7, 7, 7, 1, 0, 6, 0 };
+const int SIDEOFFU[] = { 1, 1, 1, 2, 1, 1, 1, 1, 1, 0 };
+const int SIDEOFFD[] = { 1, 1, 1, 2, 1, 1, 1, 1, 0, 0 };
+
 const byte SYSTEM_PALETTE[24] = {
 	0, 0, 0, 52, 18, 2, 53, 24, 3, 54, 30, 4,
 	63, 63, 63, 0, 0, 63, 63, 63, 0, 49, 0, 0

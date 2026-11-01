@@ -29,6 +29,11 @@ namespace Access {
 
 namespace Countdown {
 
+extern const int SIDEOFFR[];
+extern const int SIDEOFFL[];
+extern const int SIDEOFFU[];
+extern const int SIDEOFFD[];
+
 extern const byte SYSTEM_PALETTE[24];
 
 class CountdownResources : public Resources {

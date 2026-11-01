@@ -30,6 +30,7 @@ MODULE_OBJS := \
 	amazon/amazon_room.o \
 	amazon/amazon_scripts.o \
 	countdown/countdown_game.o \
+	countdown/countdown_player.o \
 	countdown/countdown_resources.o \
 	countdown/countdown_room.o \
 	martian/martian_duct.o \

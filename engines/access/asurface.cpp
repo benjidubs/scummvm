@@ -98,6 +98,7 @@ SpriteFrame::SpriteFrame(const AccessEngine *vm, Common::SeekableReadStream *str
 	for (int y = 0; y < h; ++y) {
 		int offset = stream->readByte();
 		int len = stream->readByte();
+		_rowSpans.push_back(Common::Point(offset, len));
 		assert((offset + len) <= w);
 
 		byte *destP = (byte *)getBasePtr(offset, y);

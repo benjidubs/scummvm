@@ -25,6 +25,7 @@
 #include "access/access.h"
 #include "access/resources.h"
 #include "access/amazon/amazon_player.h"
+#include "access/countdown/countdown_player.h"
 #include "access/martian/martian_player.h"
 #include "access/noctropolis/noctropolis_player.h"
 
@@ -35,6 +36,9 @@ Player *Player::init(AccessEngine *vm) {
 	case kGameAmazon:
 		vm->_playerDataCount = 8;
 		return new Amazon::AmazonPlayer(vm);
+	case kGameCountdown:
+		vm->_playerDataCount = 10;
+		return new Countdown::CountdownPlayer(vm);
 	case kGameMartianMemorandum:
 		vm->_playerDataCount = 10;
 		return new Martian::MartianPlayer(vm);
