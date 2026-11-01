@@ -183,9 +183,9 @@ void Screen::setRawPalette(const Graphics::Palette &p) {
 	p.grab(_rawPalette, 0, 256);
 }
 
-void Screen::loadRawPalette(Common::SeekableReadStream *stream) {
-	stream->read(&_rawPalette[0], Graphics::PALETTE_SIZE);
-	for (byte *p = &_rawPalette[0]; p < &_rawPalette[Graphics::PALETTE_SIZE]; ++p)
+void Screen::loadRawPalette(Common::SeekableReadStream *stream, uint paletteSize) {
+	stream->read(&_rawPalette[0], paletteSize);
+	for (byte *p = &_rawPalette[0]; p < &_rawPalette[paletteSize]; ++p)
 		*p = PALETTE_6BIT_TO_8BIT(*p);
 }
 

@@ -21,6 +21,7 @@
 
 #include "access/resources.h"
 #include "access/access.h"
+#include "access/char.h"
 #include "access/amazon/amazon_resources.h"
 #include "access/martian/martian_resources.h"
 #include "access/noctropolis/noctropolis_resources.h"
@@ -153,6 +154,10 @@ void Resources::load(Common::SeekableReadStream &s) {
 		for (uint idx2 = 0; idx2 < 4; ++idx2)
 			INVENTORY[idx]._combo[idx2] = s.readSint16LE();
 	}
+}
+
+CharEntry Resources::loadCharEntry(const byte *data) const {
+	return CharEntry(data, _vm);
 }
 
 uint Resources::findEntry(byte gameId, byte discType, byte demoType, Common::Language language) {

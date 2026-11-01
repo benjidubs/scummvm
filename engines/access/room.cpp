@@ -622,7 +622,8 @@ void Room::loadPlayField(const FileIdent &file) {
 	Screen &screen = *_vm->_screen;
 
 	// Copy the new palette
-	screen.loadRawPalette(playData->_stream);
+	screen.loadRawPalette(playData->_stream, _vm->getPlayFieldPaletteSize());
+
 	// WORKAROUND: Screen 46 in Noctropolis has a color 0 of (0, 0, 63) which
 	// causes the background to be blue?
 	if (_vm->gameIs(kGameNoctropolis) && file._fileNum == 46) {

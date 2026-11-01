@@ -79,7 +79,7 @@ CharManager::CharManager(AccessEngine *vm) : Manager(vm) {
 		if (charEntry.size() == 0)
 			_charTable.push_back(CharEntry());
 		else
-			_charTable.push_back(CharEntry(charEntry.data(), _vm));
+			_charTable.push_back(_vm->_res->loadCharEntry(charEntry.data()));
 	}
 
 	_charFlag = 0;

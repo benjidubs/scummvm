@@ -165,7 +165,7 @@ public:
 
 	void setRawPalette(const Graphics::Palette &p);
 
-	void loadRawPalette(Common::SeekableReadStream *stream);
+	void loadRawPalette(Common::SeekableReadStream *stream, uint paletteSize = Graphics::PALETTE_SIZE);
 
 	void savePalette();
 

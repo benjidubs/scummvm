@@ -37,6 +37,7 @@ extern const byte INITIAL_PALETTE[18 * 3];
 extern const int INVCOORDS[][4];
 
 class AccessEngine;
+class CharEntry;
 
 class Resources {
 	struct DATEntry {
@@ -89,6 +90,11 @@ public:
 	 * Load the access.dat file
 	 */
 	bool load(Common::U32String &errorMessage);
+
+	/**
+	 * Decode a character descriptor from access.dat
+	 */
+	virtual CharEntry loadCharEntry(const byte *data) const;
 
 	/**
 	 * Get the raw data for the given cursor number

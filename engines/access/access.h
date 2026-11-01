@@ -359,6 +359,8 @@ public:
 
 	void freeChar();
 
+	virtual uint getPlayFieldPaletteSize() const { return Graphics::PALETTE_SIZE; }
+
 	virtual int16 getScreenWidth() const { return 320; }
 	virtual int16 getScreenHeight() const { return 200; }
 
