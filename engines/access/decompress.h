@@ -36,7 +36,10 @@ private:
 	uint16 getCode();
 };
 
+uint32 decompressLZW(const byte *source, byte **dest, uint32 sizeOffset, uint32 dataOffset, const char *funcName);
+
 uint32 decompressDBE(const byte *source, byte **dest);
+uint32 decompressMDmd(const byte *source, byte **dest);
 
 } // End of namespace Access
 

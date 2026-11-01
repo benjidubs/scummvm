@@ -131,19 +131,27 @@ uint16 LzwDecompressor::getCode() {
 	return result;
 }
 
-uint32 decompressDBE(const byte *source, byte **dest) {
+uint32 decompressLZW(const byte *source, byte **dest, uint32 sizeOffset, uint32 dataOffset, const char *funcName) {
 
-	uint32 destSize = READ_LE_UINT32(source + 4);
+	uint32 destSize = READ_LE_UINT32(source + sizeOffset);
 	*dest = new byte[destSize];
 
-	debug(1, "decompressDBE() destSize = %d", destSize);
+	debug(1, "%s destSize = %d", funcName, destSize);
 
 	LzwDecompressor dec;
-	dec.decompress(source + 16, *dest);
+	dec.decompress(source + dataOffset, *dest);
 
-	debug(1, "decompressDBE() ok");
+	debug(1, "%s ok", funcName);
 
 	return destSize;
+}
+
+uint32 decompressDBE(const byte *source, byte **dest) {
+	return decompressLZW(source, dest, 4, 16, "decompressDBE()");
+}
+
+uint32 decompressMDmd(const byte *source, byte **dest) {
+	return decompressLZW(source, dest, 25, READ_LE_UINT16(source + 6), "decompressMDmd()");
 }
 
 } // End of namespace Access

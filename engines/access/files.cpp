@@ -185,21 +185,25 @@ void FileManager::loadScreen(const Common::Path &filename) {
 }
 
 void FileManager::handleFile(Resource *res) {
-	char header[3];
-	res->_stream->read(&header[0], 3);
-	res->_stream->seek(-3, SEEK_CUR);
+	char header[4];
+	res->_stream->read(&header[0], 4);
+	res->_stream->seek(-4, SEEK_CUR);
 
-	bool isCompressed = !strncmp(header, "DBE", 3);
+	bool isDBE = !strncmp(header, "DBE", 3);
+	bool isMDmd = !strncmp(header, "MDmd", 4);
 
 	// If the data is compressed, uncompress it and replace the stream
 	// in the resource with the decompressed one
-	if (isCompressed) {
+	if (isDBE || isMDmd) {
 		// Read in the entire compressed data
 		byte *src = new byte[res->_size];
 		res->_stream->read(src, res->_size);
 
 		// Decompress the data
-		res->_size = decompressDBE(src, &res->_data);
+		if (isDBE)
+			res->_size = decompressDBE(src, &res->_data);
+		else
+			res->_size = decompressMDmd(src, &res->_data);
 
 		// Replace the default resource stream with a stream for the decompressed data
 		delete res->_stream;
