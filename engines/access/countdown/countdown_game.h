@@ -32,12 +32,14 @@ class CountdownEngine : public AccessEngine {
 private:
 	void initObjects() override;
 	void setupGame() override;
+	void plotScaledSprite(const SpriteFrame *frame, const Common::Rect &bounds, byte scale, bool backwards);
 protected:
 	void playGame() override;
 public:
 	CountdownEngine(OSystem *syst, const AccessGameDescription *gameDesc);
 
 	uint getPlayFieldPaletteSize() const override { return 384; }
+	void plotList1() override;
 
 	void dead(int deathId) override;
 	void establish(int estabIndex, int sub) override;

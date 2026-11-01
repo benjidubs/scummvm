@@ -32,12 +32,13 @@ class CountdownRoom : public Room {
 protected:
 	void reloadRoom() override;
 	void reloadRoom1() override;
-	void mainAreaLClick() override {}
+	void mainAreaLClick() override;
 public:
 	CountdownRoom(AccessEngine *vm) : Room(vm) {}
 
 	void showRoom();
 	void drawRoom();
+	void doCommands() override;
 	void clearRoom() override;
 	void roomMenu() override {}
 	void init4Quads() override {}

@@ -80,7 +80,12 @@ void CountdownRoom::showRoom() {
 	_vm->_scale = _vm->_scaleI = roomInfo._scaleI;
 	_vm->_screen->setScaleTable(_vm->_scale);
 	_vm->_player->_scrollThreshold = roomInfo._scrollThreshold;
-	_vm->_player->_offsetY = _vm->_screen->_scaleTable1[62];
+
+	if (!_vm->_player->_playerSprites)
+		_vm->_player->load();
+	_vm->_player->calcManScale();
+
+	setWallCodes();
 
 	Screen &screen = *_vm->_screen;
 	if (roomInfo._paletteFile._fileNum != -1) {
@@ -111,15 +116,29 @@ void CountdownRoom::drawRoom() {
 	_vm->_newRects.clear();
 	_vm->copyBF1BF2();
 
-	ImageEntry player = *_vm->_player;
-	player._spritesPtr = _vm->_player->_playerSprites;
-	_vm->_images.addToList(player);
+	_vm->_player->walk();
 	_vm->_animation->animate(2);
 	_vm->_animation->animate(0);
 	_vm->_animation->animate(4);
 	_vm->_animation->animate(1);
 	_vm->plotList1();
 	_vm->copyBF2Vid();
+}
+
+void CountdownRoom::doCommands() {
+	if (_vm->_events->_leftButton)
+		mainAreaLClick();
+}
+
+void CountdownRoom::mainAreaLClick() {
+	const Screen &screen = *_vm->_screen;
+	Common::Rect viewport(screen._windowXAdd, screen._windowYAdd,
+		screen._windowXAdd + screen._vWindowBytesWide,
+		screen._windowYAdd + screen._vWindowLinesTall);
+	if (viewport.contains(_vm->_events->_mousePos)) {
+		_vm->_player->_moveTo = _vm->_events->calcRawMouse();
+		_vm->_player->_playerMove = true;
+	}
 }
 
 void CountdownRoom::reloadRoom() {
