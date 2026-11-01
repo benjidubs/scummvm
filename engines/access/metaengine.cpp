@@ -29,6 +29,7 @@
 
 #include "access/access.h"
 #include "access/amazon/amazon_game.h"
+#include "access/countdown/countdown_game.h"
 #include "access/martian/martian_game.h"
 #include "access/noctropolis/noctropolis_game.h"
 
@@ -134,6 +135,9 @@ Common::Error AccessMetaEngine::createInstance(OSystem *syst, Engine **engine, c
 	switch (gd->gameID) {
 	case Access::kGameAmazon:
 		*engine = new Access::Amazon::AmazonEngine(syst, gd);
+		break;
+	case Access::kGameCountdown:
+		*engine = new Access::Countdown::CountdownEngine(syst, gd);
 		break;
 	case Access::kGameMartianMemorandum:
 		*engine = new Access::Martian::MartianEngine(syst, gd);

@@ -29,6 +29,9 @@ MODULE_OBJS := \
 	amazon/amazon_resources.o \
 	amazon/amazon_room.o \
 	amazon/amazon_scripts.o \
+	countdown/countdown_game.o \
+	countdown/countdown_resources.o \
+	countdown/countdown_room.o \
 	martian/martian_duct.o \
 	martian/martian_game.o \
 	martian/martian_inventory.o \

@@ -23,6 +23,7 @@
 #include "access/access.h"
 #include "access/char.h"
 #include "access/amazon/amazon_resources.h"
+#include "access/countdown/countdown_resources.h"
 #include "access/martian/martian_resources.h"
 #include "access/noctropolis/noctropolis_resources.h"
 #include "common/translation.h"
@@ -32,6 +33,8 @@ namespace Access {
 Resources *Resources::init(AccessEngine *vm) {
 	if (vm->gameIs(kGameAmazon))
 		return new Amazon::AmazonResources(vm);
+	else if (vm->gameIs(kGameCountdown))
+		return new Countdown::CountdownResources(vm);
 	else if (vm->gameIs(kGameMartianMemorandum))
 		return new Martian::MartianResources(vm);
 	else if (vm->gameIs(kGameNoctropolis))

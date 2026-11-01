@@ -165,7 +165,7 @@ void Screen::loadPalette(int fileNum, int subfile, int srcOffset) {
 	Resource *res = _vm->_files->loadFile(fileNum, subfile);
 	const byte *palette = res->data() + srcOffset;
 
-	if (_vm->gameIs(kGameMartianMemorandum)) {
+	if (_vm->gameIs(kGameMartianMemorandum) || _vm->gameIs(kGameCountdown)) {
 		for (int i = 0; i < _numColors * 3; i++)
 			_rawPalette[_startColor * 3 + i] = PALETTE_6BIT_TO_8BIT(palette[i]);
 	} else {
@@ -306,6 +306,7 @@ void Screen::setBufferScan() {
 	case kGameMartianMemorandum: 	scanBottom = 184; break;
 	case kGameAmazon:				scanBottom = 176; break;
 	case kGameNoctropolis:			scanBottom = 400; break;
+	case kGameCountdown:			scanBottom = 144; break;
 	default:						error("Unsupported game");
 	}
 
