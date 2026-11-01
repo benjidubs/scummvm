@@ -4,6 +4,7 @@ MODULE := devtools/create_access
 MODULE_OBJS := \
 	create_access_dat.o \
 	amazon_resources.o \
+	countdown_resources.o \
 	martian_resources.o
 
 # Set the name of the executable

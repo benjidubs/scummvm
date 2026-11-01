@@ -29,6 +29,7 @@
 #include "common/rect.h"
 #include "create_access_dat.h"
 #include "amazon_resources.h"
+#include "countdown_resources.h"
 #include "martian_resources.h"
 
 /**
@@ -37,7 +38,8 @@
  * 2 bytes - Version number
  * 2 Bytes - Number of different games data in the data file
  * Series of index entries identifying each game:
- * 1 byte  - Game type: 1 = Amazon, 2 = Martian Memorandum, 3 = Noctropolis
+ * 1 byte  - Game type: 1 = Amazon, 2 = Martian Memorandum, 3 = Noctropolis,
+ * 			 4 = Countdown
  * 1 byte  - disc type: 0 = Floppy, 1 = CD, 2 = Common data shared across
  *           all variations of the given game
  * 1 byte  - Is Demo: 0 = Full game, 1 = Demo
@@ -50,6 +52,7 @@ File *outputFile;
 void writeHeader(int numExecutables);
 void writeAmazonCommonData();
 void writeMartianCommonData(int argc, char *argv[]);
+void writeCountdownCommonData(int argc, char *argv[]);
 bool processExecutable(int idx, const char *name);
 
 void NORETURN_PRE error(const char *s, ...) {
@@ -58,7 +61,7 @@ void NORETURN_PRE error(const char *s, ...) {
 }
 
 int main(int argc, char *argv[]) {
-	const uint NUM_COMMON_ENTRIES = 2;
+	const uint NUM_COMMON_ENTRIES = 3;
 
 	if (argc < 3) {
 		printf("Format: %s output_filename executable1 [executable2 ..]\n", argv[0]);
@@ -73,6 +76,7 @@ int main(int argc, char *argv[]) {
 	// Write out entries containing common data for the games
 	writeAmazonCommonData();
 	writeMartianCommonData(argc, argv);
+	writeCountdownCommonData(argc, argv);
 
 	// Iterate through processing each specified executable
 	outputFile->seek(0, SEEK_END);
@@ -187,6 +191,84 @@ void writeMartianCommonData(int argc, char *argv[]) {
 				uint offsets[FONT_COUNT];
 				exeFile.seek(DATA_SEGMENT + FONT_CHAR_OFFSETS[fontNum]);
 				for (int i = 0; i < FONT_COUNT; ++i) {
+					offsets[i] = exeFile.readWord();
+					if (i == 0)
+						dataOffset = offsets[0];
+					offsets[i] -= dataOffset;
+					assert(offsets[i] < FONT_DATA_SIZE[fontNum]);
+
+					outputFile->writeWord(offsets[i]);
+				}
+
+				// Write out character data
+				exeFile.seek(DATA_SEGMENT + dataOffset);
+				outputFile->write(exeFile, FONT_DATA_SIZE[fontNum]);
+			}
+
+			exeFile.close();
+			return;
+		}
+		exeFile.close();
+	}
+
+	// No executable found, so store 0 size fonts
+	outputFile->writeWord(0);
+	outputFile->writeWord(0);
+	outputFile->writeWord(0);
+	outputFile->writeWord(0);
+}
+
+void writeCountdownCommonData(int argc, char *argv[]) {
+	// Write out the header entry
+	outputFile->seek(24);
+	outputFile->writeByte(4);    // Countdown
+	outputFile->writeByte(2);    // Common data
+	outputFile->writeByte(0);
+	outputFile->writeByte(0);
+	outputFile->writeLong(outputFile->size());
+
+	// Write out cursor list
+	outputFile->seek(0, SEEK_END);
+	outputFile->writeWord(COUNTDOWN_NUM_CURSORS);
+
+	for (uint idx = 0; idx < COUNTDOWN_NUM_CURSORS; ++idx) {
+		outputFile->writeWord(Countdown::CURSOR_SIZES[idx]);
+		outputFile->write(Countdown::CURSORS[idx], Countdown::CURSOR_SIZES[idx]);
+	}
+
+	// Check for the presence of a Countdown executable
+	for (int idx = 2; idx < argc; ++idx) {
+		File exeFile;
+		if (!exeFile.open(argv[idx]))
+			continue;
+
+		// Total up the first 256 bytes of the executable as a simplified checksum
+		uint fileChecksum = 0;
+		for (int i = 0; i < 256; ++i)
+			fileChecksum += exeFile.readByte();
+
+		if (fileChecksum == 11084) {
+			// TODO: Font records are identical to Martians, consolidate?
+			const int DATA_SEGMENT = 0x12220;
+			const int fontCount = 119;
+			const int FONT_WIDTHS[2] = { 0x7F7A, 0x7A8A };
+			const int FONT_CHAR_OFFSETS[2] = { 0x7E8C, 0x799C };
+			const uint FONT_DATA_SIZE[2] = { 849, 907 };
+			int dataOffset;
+
+			for (int fontNum = 0; fontNum < 2; ++fontNum) {
+				// Write out sizes
+				outputFile->writeWord(fontCount);
+				outputFile->writeWord(FONT_DATA_SIZE[fontNum]);
+
+				// Write out character widths
+				exeFile.seek(DATA_SEGMENT + FONT_WIDTHS[fontNum]);
+				outputFile->write(exeFile, fontCount);
+
+				// Write out character offsets
+				uint offsets[fontCount];
+				exeFile.seek(DATA_SEGMENT + FONT_CHAR_OFFSETS[fontNum]);
+				for (int i = 0; i < fontCount; ++i) {
 					offsets[i] = exeFile.readWord();
 					if (i == 0)
 						dataOffset = offsets[0];
@@ -360,6 +442,41 @@ bool processExecutable(int exeIdx, const char *name) {
 		comboTable = nullptr;
 		break;
 
+	case 11084:
+		// Countdown 1.2 decompressed
+		gameId = 4;
+		dataSegmentOffset = 0x12220;
+		filenamesOffset = dataSegmentOffset + 0x19DA;
+		numFilenames = 67;
+		charsStart = dataSegmentOffset + 0x757A;
+		charsEnd = dataSegmentOffset + 0x766A;
+		roomsStart = dataSegmentOffset + 0x6A84;
+		roomsEnd = dataSegmentOffset + 0x7096;
+		travelPosOffset = 0;
+		numRooms = 52;
+		roomDescs = &Countdown::ROOM_DESCR[0];
+		deathScreens = Countdown::DEATH_SCREENS_ENG;
+		deathText = &Countdown::DEATH_TEXT_ENG[0];
+		numDeaths = sizeof(Countdown::DEATH_SCREENS_ENG);
+		numItems = 70;
+		itemNames = &Countdown::INVENTORY_NAMES_ENG[0];
+		comboTable = nullptr;
+		break;
+
+	case 1381:
+		// Countdown 1.2 EXEPACK
+		printf("Countdown provided that's packed with EXEPACK.\n");
+		printf("Countdown needs to be unpacked before it can be used with this tool.\n");
+		exeFile.close();
+		return false;
+
+	case 1150:
+	case 11260:
+		// Countdown 1.0 EXEPACK or decompressed
+		printf("Only the Countdown 1.2 executable is supported.\n");
+		exeFile.close();
+		return false;
+
 	default:
 		printf("Unknown game executable specified - %s\n", name);
 		exeFile.close();
@@ -423,10 +540,14 @@ bool processExecutable(int exeIdx, const char *name) {
 		roomOffsets.push_back(exeFile.readWord());
 	roomOffsets.push_back(roomsEnd - dataSegmentOffset);
 
-	exeFile.seek(travelPosOffset);
+	if (travelPosOffset != 0)
+		exeFile.seek(travelPosOffset);
 	for (uint idx = 0; idx < numRooms; ++idx) {
-		int16 xp = (int16)exeFile.readWord();
-		int16 yp = (int16)exeFile.readWord();
+		int16 xp = -1, yp = -1;
+		if (travelPosOffset != 0) {
+			xp = (int16)exeFile.readWord();
+			yp = (int16)exeFile.readWord();
+		}
 		travelPos.push_back(Common::Point(xp, yp));
 	}
 
@@ -437,10 +558,12 @@ bool processExecutable(int exeIdx, const char *name) {
 		if (roomOffsets[idx] == 0) {
 			dataSize = 0;
 		} else {
-			// Find the offset of the next higher entry that's non-zero
-			uint offset = 0;
-			for (uint idx2 = idx + 1; !offset; ++idx2)
-				offset = roomOffsets[idx2];
+			// Find the next higher offset, including unordered and shared entries.
+			uint offset = roomsEnd - dataSegmentOffset;
+			for (uint idx2 = 0; idx2 < numRooms; ++idx2) {
+				if (roomOffsets[idx2] > roomOffsets[idx] && roomOffsets[idx2] < offset)
+					offset = roomOffsets[idx2];
+			}
 			dataSize = offset - roomOffsets[idx];
 			exeFile.seek(dataSegmentOffset + roomOffsets[idx]);
 		}
@@ -495,6 +618,81 @@ bool processExecutable(int exeIdx, const char *name) {
 			outputFile->writeString(Amazon::IQLABELS_ENG[idx]);
 
 		outputFile->writeString(Amazon::CANT_GET_THERE_ENG);
+	} else if (gameId == 4) {
+		// Flashback narration
+		outputFile->writeWord(ARRAYSIZE(Countdown::FLASHBACK_TEXT_ENG));
+		for (uint idx = 0; idx < ARRAYSIZE(Countdown::FLASHBACK_TEXT_ENG); ++idx)
+			outputFile->writeString(Countdown::FLASHBACK_TEXT_ENG[idx]);
+
+		// Write out verbs/default responses
+		outputFile->writeWord(ARRAYSIZE(Countdown::VERB_LABELS_ENG));
+		for (uint idx = 0; idx < ARRAYSIZE(Countdown::VERB_LABELS_ENG); ++idx)
+			outputFile->writeString(Countdown::VERB_LABELS_ENG[idx]);
+		for (uint idx = 0; idx < ARRAYSIZE(Countdown::VERB_DEFAULTS_ENG); ++idx)
+			outputFile->writeString(Countdown::VERB_DEFAULTS_ENG[idx]);
+
+		// Write out the USE label connectors
+		outputFile->writeWord(ARRAYSIZE(Countdown::USE_CONNECTORS_ENG));
+		for (uint idx = 0; idx < ARRAYSIZE(Countdown::USE_CONNECTORS_ENG); ++idx)
+			outputFile->writeString(Countdown::USE_CONNECTORS_ENG[idx]);
+
+		// Write out status bar texts
+		outputFile->writeString(Countdown::SCORE_TEXT_ENG);
+		outputFile->writeString(Countdown::TIME_TEXT_ENG);
+		outputFile->writeString(Countdown::DATE_TEXT_ENG);
+
+		// Write out ASK ABOUT topic names and conversations
+		outputFile->writeWord(ARRAYSIZE(Countdown::ASK_TOPICS_ENG));
+		for (uint idx = 0; idx < ARRAYSIZE(Countdown::ASK_TOPICS_ENG); ++idx)
+			outputFile->writeString(Countdown::ASK_TOPICS_ENG[idx]);
+		outputFile->writeWord(ARRAYSIZE(Countdown::TALK_TEXT_ENG));
+		for (uint idx = 0; idx < ARRAYSIZE(Countdown::TALK_TEXT_ENG); ++idx)
+			outputFile->writeString(Countdown::TALK_TEXT_ENG[idx]);
+
+		outputFile->writeWord(ARRAYSIZE(Countdown::SAVELOAD_TEXT_ENG));
+		for (uint idx = 0; idx < ARRAYSIZE(Countdown::SAVELOAD_TEXT_ENG); ++idx)
+			outputFile->writeString(Countdown::SAVELOAD_TEXT_ENG[idx]);
+
+		outputFile->writeString(Countdown::INTRO_TEXT_ENG);
+
+		// Write out the conversation intros
+		outputFile->writeWord(ARRAYSIZE(Countdown::NPC_TEXT_ENG));
+		for (uint idx = 0; idx < ARRAYSIZE(Countdown::NPC_TEXT_ENG); ++idx)
+			outputFile->writeString(Countdown::NPC_TEXT_ENG[idx]);
+
+		// Write out TRAVEL's destination menu
+		outputFile->writeString(Countdown::TRAVEL_TITLE_ENG);
+		outputFile->writeWord(ARRAYSIZE(Countdown::DESTINATION_CITIES_ENG));
+		for (uint idx = 0; idx < ARRAYSIZE(Countdown::DESTINATION_CITIES_ENG); ++idx) {
+			outputFile->writeString(Countdown::DESTINATION_CITIES_ENG[idx]);
+			outputFile->writeString(Countdown::DESTINATION_PLACES_ENG[idx]);
+		}
+
+		outputFile->writeString(Countdown::TRANSPORT_TITLE_ENG);
+		outputFile->writeString(Countdown::CASH_TEXT_ENG);
+
+		outputFile->writeWord(ARRAYSIZE(Countdown::TRANSPORT_OPTIONS_ENG));
+		for (uint idx = 0; idx < ARRAYSIZE(Countdown::TRANSPORT_OPTIONS_ENG); ++idx) {
+			outputFile->writeString(Countdown::TRANSPORT_OPTIONS_ENG[idx]);
+			outputFile->writeString(Countdown::TRANSPORT_FARES_ENG[idx]);
+		}
+
+		outputFile->writeWord(ARRAYSIZE(Countdown::CAD_TEXT_ENG));
+		for (uint idx = 0; idx < ARRAYSIZE(Countdown::CAD_TEXT_ENG); ++idx)
+			outputFile->writeString(Countdown::CAD_TEXT_ENG[idx]);
+
+		outputFile->writeWord(ARRAYSIZE(Countdown::PAYMENT_TEXT_ENG));
+		for (uint idx = 0; idx < ARRAYSIZE(Countdown::PAYMENT_TEXT_ENG); ++idx)
+			outputFile->writeString(Countdown::PAYMENT_TEXT_ENG[idx]);
+
+		outputFile->writeWord(ARRAYSIZE(Countdown::BLACKJACK_TEXT_ENG));
+		for (uint idx = 0; idx < ARRAYSIZE(Countdown::BLACKJACK_TEXT_ENG); ++idx)
+			outputFile->writeString(Countdown::BLACKJACK_TEXT_ENG[idx]);
+
+		outputFile->writeWord(ARRAYSIZE(Countdown::ENDING_TEXT_ENG));
+		for (uint idx = 0; idx < ARRAYSIZE(Countdown::ENDING_TEXT_ENG); ++idx)
+			outputFile->writeString(Countdown::ENDING_TEXT_ENG[idx]);
+		outputFile->writeString(Countdown::ENDING_SCORE_TEXT_ENG);
 	}
 
 	// Do final padding to the next paragraph boundary
